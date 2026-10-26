@@ -23,6 +23,23 @@ public class GuiModernMerchant extends GuiContainer {
 
         this.xSize = 276;
         this.ySize = 166;
+
+        updateGuiPositions();
+    }
+
+    private void updateGuiPositions() {
+        this.inventorySlots.inventorySlots.get(0).xDisplayPosition = 136;
+        this.inventorySlots.inventorySlots.get(0).yDisplayPosition = 37;
+
+        this.inventorySlots.inventorySlots.get(1).xDisplayPosition = 162;
+        this.inventorySlots.inventorySlots.get(1).yDisplayPosition = 37;
+
+        this.inventorySlots.inventorySlots.get(2).xDisplayPosition = 220;
+        this.inventorySlots.inventorySlots.get(2).yDisplayPosition = 37;
+
+        for (int i = 3; i <= 38; i++) {
+            this.inventorySlots.inventorySlots.get(i).xDisplayPosition += 100;
+        }
     }
 
     public IMerchant getMerchant() {
