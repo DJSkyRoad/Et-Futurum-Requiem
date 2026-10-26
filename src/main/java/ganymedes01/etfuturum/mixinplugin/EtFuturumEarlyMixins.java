@@ -337,6 +337,7 @@ public class EtFuturumEarlyMixins implements IFMLLoadingPlugin, IEarlyMixinLoade
 
         if (ConfigMixins.modernTradingScreen) {
             mixins.add("moderntrading.client.MixinEntityPlayerSP");
+            mixins.add("moderntrading.client.MixinNetHandlerPlayClient");
         }
 
 		if (ConfigEntities.enableFoxes) {
