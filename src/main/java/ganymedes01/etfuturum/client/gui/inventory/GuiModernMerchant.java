@@ -1,5 +1,7 @@
 package ganymedes01.etfuturum.client.gui.inventory;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -49,21 +51,45 @@ public class GuiModernMerchant extends GuiContainer {
     @Override
     public void initGui() {
         super.initGui();
+        for (int i = 0; i < 7; i++) {
+            this.buttonList.add(new GuiModernMerchant.
+                    GuiTradeListButton(i, this.guiLeft + 5, this.guiTop + 18 + i * 20, ""));
+        }
     }
 
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         this.mc.getTextureManager().bindTexture(TEXTURE);
-        int k = (this.width - this.xSize) / 2;
-        int l = (this.height - this.ySize) / 2;
-        //this.drawTexturedModalRect(k, l, 0, 0, this.xSize, this.ySize);
+
         func_146110_a(guiLeft, guiTop, 0, 0, this.xSize, this.ySize, 512, 256);
 
         MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.mc.thePlayer);
 
         if (merchantrecipelist != null && !merchantrecipelist.isEmpty()) {
 
+        }
+    }
+
+    @Override
+    protected void actionPerformed(GuiButton button) {
+        super.actionPerformed(button);
+    }
+
+    private class GuiTradeListButton extends GuiButton {
+
+        public GuiTradeListButton(int buttonId, int x, int y, String buttonText) {
+            super(buttonId, x, y, 89, 20, buttonText);
+        }
+
+        @Override
+        public void drawButton(Minecraft mc, int mouseX, int mouseY) {
+            MerchantRecipeList tradingList = merchant.getRecipes(mc.thePlayer);
+            visible = false;
+            if (tradingList != null) {
+                super.drawButton(mc, mouseX, mouseY);
+                visible = true;
+            }
         }
     }
 }
