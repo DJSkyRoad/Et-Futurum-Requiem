@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.ContainerMerchant;
@@ -31,7 +32,7 @@ public class GuiModernMerchant extends GuiContainer {
     public GuiModernMerchant(InventoryPlayer player, IMerchant merchant, World world, String title) {
         super(new ContainerMerchant(player, merchant, world));
         this.merchant = merchant;
-        this.title = title;
+        this.title = title != null && !title.isEmpty() ? title : I18n.format("entity.Villager.name", new Object[0]);
 
         this.xSize = 276;
         this.ySize = 166;
@@ -81,6 +82,16 @@ public class GuiModernMerchant extends GuiContainer {
         if (merchantrecipelist != null && !merchantrecipelist.isEmpty()) {
 
         }
+    }
+
+    @Override
+    protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
+        this.fontRendererObj.drawString(this.title, 187 - this.fontRendererObj.getStringWidth(this.title) / 2, 6, 4210752);
+
+        this.fontRendererObj.drawString(I18n.format("container.inventory"), 107, 72, 4210752);
+
+        String trades = I18n.format("merchant.trades");
+        this.fontRendererObj.drawString(trades, 53 - this.fontRendererObj.getStringWidth(trades) / 2, 6, 4210752);
     }
 
     @Override
