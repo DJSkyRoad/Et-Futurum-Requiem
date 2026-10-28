@@ -31,6 +31,7 @@ public class GuiModernMerchant extends GuiContainer {
     private final ContainerMerchant container;
 
     private int scrollOffset = 0;
+    private boolean isDragging;
 
     public GuiModernMerchant(InventoryPlayer player, IMerchant merchant, World world, String title) {
         super(new ContainerMerchant(player, merchant, world));
@@ -215,6 +216,40 @@ public class GuiModernMerchant extends GuiContainer {
             scrollOffset -= Integer.signum(delta);
             if (scrollOffset < 0) scrollOffset = 0;
             if (scrollOffset > getMaxScroll()) scrollOffset = getMaxScroll();
+        }
+    }
+
+    @Override
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) {
+        super.mouseClicked(mouseX, mouseY, mouseButton);
+
+        int x = mouseX - guiLeft;
+        int y = mouseY - guiTop;
+        if (x >= 94 && x <= 99 && y >= 18 && y <= 157 && getMaxScroll() > 0 && mouseButton == 0) {
+            this.isDragging = true;
+        }
+    }
+
+    @Override
+    protected void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
+
+        if (isDragging) {
+            int y = mouseY - guiTop;
+            int pos = y - 31;
+            float frac = (float) pos / 113;
+            this.scrollOffset = Math.round(frac * getMaxScroll());
+            if (scrollOffset < 0) scrollOffset = 0;
+            if (scrollOffset > getMaxScroll()) scrollOffset = getMaxScroll();
+        } else {
+            super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
+        }
+    }
+
+    @Override
+    protected void mouseMovedOrUp(int mouseX, int mouseY, int state) {
+        super.mouseMovedOrUp(mouseX, mouseY, state);
+        if (state == 0) {
+            this.isDragging = false;
         }
     }
 
