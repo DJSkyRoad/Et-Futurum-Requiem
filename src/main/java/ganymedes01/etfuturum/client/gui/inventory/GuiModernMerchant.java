@@ -1,15 +1,23 @@
 package ganymedes01.etfuturum.client.gui.inventory;
 
+import ganymedes01.etfuturum.core.utils.Logger;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.ContainerMerchant;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.C17PacketCustomPayload;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.village.MerchantRecipe;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 public class GuiModernMerchant extends GuiContainer {
 
@@ -17,6 +25,8 @@ public class GuiModernMerchant extends GuiContainer {
 
     private IMerchant merchant;
     private String title;
+
+    private final ContainerMerchant container;
 
     public GuiModernMerchant(InventoryPlayer player, IMerchant merchant, World world, String title) {
         super(new ContainerMerchant(player, merchant, world));
@@ -26,21 +36,23 @@ public class GuiModernMerchant extends GuiContainer {
         this.xSize = 276;
         this.ySize = 166;
 
+        this.container = (ContainerMerchant) this.inventorySlots;
+
         updateGuiPositions();
     }
 
     private void updateGuiPositions() {
-        this.inventorySlots.inventorySlots.get(0).xDisplayPosition = 136;
-        this.inventorySlots.inventorySlots.get(0).yDisplayPosition = 37;
+        this.container.inventorySlots.get(0).xDisplayPosition = 136;
+        this.container.inventorySlots.get(0).yDisplayPosition = 37;
 
-        this.inventorySlots.inventorySlots.get(1).xDisplayPosition = 162;
-        this.inventorySlots.inventorySlots.get(1).yDisplayPosition = 37;
+        this.container.inventorySlots.get(1).xDisplayPosition = 162;
+        this.container.inventorySlots.get(1).yDisplayPosition = 37;
 
-        this.inventorySlots.inventorySlots.get(2).xDisplayPosition = 220;
-        this.inventorySlots.inventorySlots.get(2).yDisplayPosition = 37;
+        this.container.inventorySlots.get(2).xDisplayPosition = 220;
+        this.container.inventorySlots.get(2).yDisplayPosition = 37;
 
         for (int i = 3; i <= 38; i++) {
-            this.inventorySlots.inventorySlots.get(i).xDisplayPosition += 100;
+            this.container.inventorySlots.get(i).xDisplayPosition += 100;
         }
     }
 
@@ -72,8 +84,95 @@ public class GuiModernMerchant extends GuiContainer {
     }
 
     @Override
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        super.drawScreen(mouseX, mouseY, partialTicks);
+
+        MerchantRecipeList merchantrecipelist = merchant.getRecipes(this.mc.thePlayer);
+        if (merchantrecipelist == null) {
+            return;
+        }
+
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        RenderHelper.disableStandardItemLighting();
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        this.mc.getTextureManager().bindTexture(TEXTURE);
+
+
+        for (int i = 0; i < 7; i++) {
+            if (i >= merchantrecipelist.size()) {
+                break;
+            }
+            int x = guiLeft + 60;
+            int y = guiTop + 22 + i * 20;
+
+
+            MerchantRecipe merchantrecipe = (MerchantRecipe)merchantrecipelist.get(i);
+            int u = merchantrecipe.isRecipeDisabled() ? 25 : 15;
+
+            func_146110_a(x, y, u, 171, 10, 9, 512, 256);
+
+
+        }
+
+        GL11.glPushMatrix();
+        RenderHelper.enableGUIStandardItemLighting();
+        GL11.glDisable(GL11.GL_LIGHTING);
+        GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+        GL11.glEnable(GL11.GL_COLOR_MATERIAL);
+        GL11.glEnable(GL11.GL_LIGHTING);
+        itemRender.zLevel = 100.0F;
+
+        for (int i = 0; i < 7; i++) {
+            if (i >= merchantrecipelist.size()) {
+                break;
+            }
+            int x = guiLeft;
+            int y = guiTop + 19 + i * 20;
+
+            MerchantRecipe merchantrecipe = (MerchantRecipe)merchantrecipelist.get(i);
+
+
+            ItemStack firstCost = merchantrecipe.getItemToBuy();
+            ItemStack secondCost = merchantrecipe.getSecondItemToBuy();
+            ItemStack result = merchantrecipe.getItemToSell();
+
+
+            itemRender.renderItemAndEffectIntoGUI(this.fontRendererObj, this.mc.getTextureManager(), firstCost, x + 10, y);
+            itemRender.renderItemOverlayIntoGUI(this.fontRendererObj, this.mc.getTextureManager(), firstCost, x + 10, y);
+
+            if (secondCost != null) {
+                itemRender.renderItemAndEffectIntoGUI(this.fontRendererObj, this.mc.getTextureManager(), secondCost, x + 40, y);
+                itemRender.renderItemOverlayIntoGUI(this.fontRendererObj, this.mc.getTextureManager(), secondCost, x + 40, y);
+            }
+
+            itemRender.renderItemAndEffectIntoGUI(this.fontRendererObj, this.mc.getTextureManager(), result, x + 73, y);
+            itemRender.renderItemOverlayIntoGUI(this.fontRendererObj, this.mc.getTextureManager(), result, x + 73, y);
+
+        }
+        itemRender.zLevel = 0.0F;
+        GL11.glDisable(GL11.GL_LIGHTING);
+        GL11.glPopMatrix();
+        GL11.glEnable(GL11.GL_LIGHTING);
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        RenderHelper.enableStandardItemLighting();
+    }
+
+    @Override
     protected void actionPerformed(GuiButton button) {
-        super.actionPerformed(button);
+        container.setCurrentRecipeIndex(button.id);
+        ByteBuf bytebuf = Unpooled.buffer();
+
+        try {
+            bytebuf.writeInt(button.id);
+            this.mc.getNetHandler().addToSendQueue(new C17PacketCustomPayload("MC|TrSel", bytebuf));
+        }
+        catch (Exception exception) {
+            Logger.error(exception);
+        }
+        finally {
+            bytebuf.release();
+        }
     }
 
     private class GuiTradeListButton extends GuiButton {
@@ -85,11 +184,13 @@ public class GuiModernMerchant extends GuiContainer {
         @Override
         public void drawButton(Minecraft mc, int mouseX, int mouseY) {
             MerchantRecipeList tradingList = merchant.getRecipes(mc.thePlayer);
-            visible = false;
-            if (tradingList != null) {
-                super.drawButton(mc, mouseX, mouseY);
+
+            if (tradingList != null && this.id < tradingList.size()) {
                 visible = true;
+            } else {
+                visible = false;
             }
+            super.drawButton(mc, mouseX, mouseY);
         }
     }
 }
