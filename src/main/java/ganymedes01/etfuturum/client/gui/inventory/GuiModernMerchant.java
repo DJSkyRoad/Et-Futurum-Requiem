@@ -90,7 +90,7 @@ public class GuiModernMerchant extends GuiContainer {
 
         this.fontRendererObj.drawString(I18n.format("container.inventory"), 107, 72, 4210752);
 
-        String trades = I18n.format("merchant.trades");
+        String trades = I18n.format("container.etfuturum.trades");
         this.fontRendererObj.drawString(trades, 53 - this.fontRendererObj.getStringWidth(trades) / 2, 6, 4210752);
     }
 
