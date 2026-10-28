@@ -17,6 +17,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.village.MerchantRecipe;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraft.world.World;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
@@ -28,6 +29,8 @@ public class GuiModernMerchant extends GuiContainer {
     private String title;
 
     private final ContainerMerchant container;
+
+    private int scrollOffset = 0;
 
     public GuiModernMerchant(InventoryPlayer player, IMerchant merchant, World world, String title) {
         super(new ContainerMerchant(player, merchant, world));
@@ -61,6 +64,15 @@ public class GuiModernMerchant extends GuiContainer {
         return merchant;
     }
 
+    private int getMaxScroll() {
+        MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.mc.thePlayer);
+        if (merchantrecipelist == null || merchantrecipelist.size() <= 7) {
+            return 0;
+        } else {
+            return merchantrecipelist.size() - 7;
+        }
+    }
+
     @Override
     public void initGui() {
         super.initGui();
@@ -80,7 +92,13 @@ public class GuiModernMerchant extends GuiContainer {
         MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.mc.thePlayer);
 
         if (merchantrecipelist != null && !merchantrecipelist.isEmpty()) {
+            int y = guiTop + 18;
+            int u = getMaxScroll() == 0 ? 6 : 0;
 
+            if (getMaxScroll() != 0) {
+                y = guiTop + 18 + (int) ((float) scrollOffset / getMaxScroll() * (140 - 27));
+            }
+            func_146110_a(guiLeft + 94, y, u, 199, 6, 27, 512, 256);
         }
     }
 
@@ -111,14 +129,14 @@ public class GuiModernMerchant extends GuiContainer {
 
 
         for (int i = 0; i < 7; i++) {
-            if (i >= merchantrecipelist.size()) {
+            if (i + scrollOffset >= merchantrecipelist.size()) {
                 break;
             }
             int x = guiLeft + 60;
             int y = guiTop + 22 + i * 20;
 
 
-            MerchantRecipe merchantrecipe = (MerchantRecipe)merchantrecipelist.get(i);
+            MerchantRecipe merchantrecipe = (MerchantRecipe)merchantrecipelist.get(i + scrollOffset);
             int u = merchantrecipe.isRecipeDisabled() ? 25 : 15;
 
             func_146110_a(x, y, u, 171, 10, 9, 512, 256);
@@ -135,13 +153,13 @@ public class GuiModernMerchant extends GuiContainer {
         itemRender.zLevel = 100.0F;
 
         for (int i = 0; i < 7; i++) {
-            if (i >= merchantrecipelist.size()) {
+            if (i + scrollOffset >= merchantrecipelist.size()) {
                 break;
             }
             int x = guiLeft;
             int y = guiTop + 19 + i * 20;
 
-            MerchantRecipe merchantrecipe = (MerchantRecipe)merchantrecipelist.get(i);
+            MerchantRecipe merchantrecipe = (MerchantRecipe)merchantrecipelist.get(i + scrollOffset);
 
 
             ItemStack firstCost = merchantrecipe.getItemToBuy();
@@ -171,11 +189,11 @@ public class GuiModernMerchant extends GuiContainer {
 
     @Override
     protected void actionPerformed(GuiButton button) {
-        container.setCurrentRecipeIndex(button.id);
+        container.setCurrentRecipeIndex(button.id + scrollOffset);
         ByteBuf bytebuf = Unpooled.buffer();
 
         try {
-            bytebuf.writeInt(button.id);
+            bytebuf.writeInt(button.id + scrollOffset);
             this.mc.getNetHandler().addToSendQueue(new C17PacketCustomPayload("MC|TrSel", bytebuf));
         }
         catch (Exception exception) {
@@ -183,6 +201,20 @@ public class GuiModernMerchant extends GuiContainer {
         }
         finally {
             bytebuf.release();
+        }
+    }
+
+    @Override
+    public void handleMouseInput() {
+        super.handleMouseInput();
+        int x = Mouse.getEventX() * this.width / this.mc.displayWidth;
+        int y = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
+
+        if (x - guiLeft >= 5 && x - guiLeft < 100 && y - guiTop >= 18 && y - guiTop < 158) {
+            int delta = Mouse.getEventDWheel();
+            scrollOffset -= Integer.signum(delta);
+            if (scrollOffset < 0) scrollOffset = 0;
+            if (scrollOffset > getMaxScroll()) scrollOffset = getMaxScroll();
         }
     }
 
@@ -196,7 +228,7 @@ public class GuiModernMerchant extends GuiContainer {
         public void drawButton(Minecraft mc, int mouseX, int mouseY) {
             MerchantRecipeList tradingList = merchant.getRecipes(mc.thePlayer);
 
-            if (tradingList != null && this.id < tradingList.size()) {
+            if (tradingList != null && this.id + scrollOffset < tradingList.size()) {
                 visible = true;
             } else {
                 visible = false;
